@@ -2,6 +2,8 @@
 
 export(bout_analysis)
 export(curate_dead_animals)
+export(generic_transition)
+export(hamming_index)
 export(max_velocity_detector)
 export(max_velocity_detector_legacy)
 export(sleep_annotation)
