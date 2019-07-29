@@ -32,7 +32,9 @@
 max_velocity_detector  <- function(data,
                                    time_window_length,
                                    velocity_correction_coef =3e-3,
-                                   masking_duration=6){
+                                   masking_duration=6,
+                                   threshold = 1
+                                   ){
   dt = x = .N = . = velocity = moving = dist = beam_cross = has_interacted = NULL
   dt = beam_crossed =  interaction_id = masked = interactions =  NULL
   xy_dist_log10x1000 = max_velocity = velocity_corrected = NULL
@@ -79,7 +81,7 @@ max_velocity_detector  <- function(data,
     beam_crosses = as.integer(sum(beam_cross))
   ), by="t_round"]
 
-  d_small[, moving :=  ifelse(max_velocity > 1, TRUE,FALSE)]
+  d_small[, moving :=  ifelse(max_velocity > threshold, TRUE,FALSE)]
   data.table::setnames(d_small, "t_round", "t")
   d_small
 }

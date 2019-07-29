@@ -8,7 +8,8 @@
 \title{Motion detector for Ethocope data}
 \usage{
 max_velocity_detector(data, time_window_length,
-  velocity_correction_coef = 0.003, masking_duration = 6)
+  velocity_correction_coef = 0.003, masking_duration = 6,
+  threshold = 1)
 
 max_velocity_detector_legacy(data, velocity_threshold = 0.006)
 

@@ -56,6 +56,7 @@
 sleep_annotation <- function(data,
                             time_window_length = 10, #s
                             min_time_immobile = 300, #s = 5min
+                            velocity_correction_coef = 3e-3, # 0.003
                             motion_detector_FUN = max_velocity_detector,
                             ...
 ){
@@ -69,7 +70,7 @@ sleep_annotation <- function(data,
       return(NULL)
     # todo if t not unique, stop
 
-    d_small <- motion_detector_FUN(d, time_window_length,...)
+    d_small <- motion_detector_FUN(d, time_window_length, velocity_correction_coef, ...)
 
     if(key(d_small) != "t")
       stop("Key in output of motion_classifier_FUN MUST be `t'")
@@ -100,6 +101,72 @@ sleep_annotation <- function(data,
        wrapped(.SD),
        by=key(data)]
 }
+
+#' Score sleep behaviour from immobility
+#'
+#' This function creates a sleep_annotation function with a custom
+#' velocity correction coefficient i.e. the user can change the default of
+#' 0.003.
+#' @export
+sleep_annotation_closure <- function(velocity_correction_coef) {
+
+  sleep_annotation <- function(data,
+                               time_window_length = 10, #s
+                               min_time_immobile = 300, #s = 5min
+                               motion_detector_FUN = max_velocity_detector,
+                               ...
+  ){
+    print(paste0("Velocity_correction_coef: ", velocity_correction_coef))
+
+
+    moving = .N = is_interpolated  = .SD = asleep = NULL
+    # all columns likely to be needed.
+    columns_to_keep <- c("t", "x", "y", "max_velocity", "interactions",
+                         "beam_crosses", "moving","asleep", "is_interpolated")
+
+    wrapped <- function(d){
+      if(nrow(d) < 100)
+        return(NULL)
+      # todo if t not unique, stop
+
+      d_small <- motion_detector_FUN(d, time_window_length, velocity_correction_coef, ...)
+
+      if(key(d_small) != "t")
+        stop("Key in output of motion_classifier_FUN MUST be `t'")
+
+      if(nrow(d_small) < 1)
+        return(NULL)
+      # the times to  be queried
+      time_map <- data.table::data.table(t = seq(from=d_small[1,t], to=d_small[.N,t], by=time_window_length),
+                                         key = "t")
+      missing_val <- time_map[!d_small]
+
+      d_small <- d_small[time_map,roll=T]
+      d_small[,is_interpolated := FALSE]
+      d_small[missing_val,is_interpolated:=TRUE]
+      d_small[is_interpolated == T, moving := FALSE]
+      d_small[,asleep := sleep_contiguous(moving,
+                                          1/time_window_length,
+                                          min_valid_time = min_time_immobile)]
+      d_small <- stats::na.omit(d[d_small,
+                                  on=c("t"),
+                                  roll=T])
+      d_small[, intersect(columns_to_keep, colnames(d_small)), with=FALSE]
+    }
+
+    if(is.null(key(data)))
+      return(wrapped(data))
+    data[,
+         wrapped(.SD),
+         by=key(data)]
+  }
+
+  return(sleep_annotation)
+
+}
+
+
+sleep_annotation <- sleep_annotation_closure(0.01)
 
 attr(sleep_annotation, "needed_columns") <- function(motion_detector_FUN = max_velocity_detector,
                                                      ...){
