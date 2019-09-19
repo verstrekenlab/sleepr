@@ -1,4 +1,4 @@
-Package: sleepr
+Package: fslsleepr
 Title: Analyse Activity and Sleep Behaviour
 Date: 2018-10-04
 Version: 0.3.0
@@ -12,7 +12,7 @@ Description: Use behavioural variables to score activity and infer sleep from bo
     and a new algorithm to detect when animals are dead.
 Depends: 
     R (>= 3.00),
-    behavr
+    fslbehavr
 Imports: 
   data.table
 Suggests: 
@@ -22,7 +22,7 @@ Suggests:
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
-URL: https://github.com/rethomics/sleepr
-BugReports: https://github.com/rethomics/sleepr/issues
+URL: https://gitlab.com/flysleeplab/fsl-retho/sleepr
+BugReports: https://gitlab.com/flysleeplab/fsl-retho/sleepr/issues
 RoxygenNote: 6.1.1
 Roxygen: list(markdown = TRUE)
