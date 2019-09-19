@@ -18,7 +18,7 @@
 #' @param masking_duration number of seconds during which any movement is ignored (velocity is set to 0) after
 #' a stimulus is delivered (a.k.a. interaction).
 #' @param velocity_threshold uncorrected velocity above which an animal is classified as `moving' (for the legacy version).
-#' @return an object of the same type as `data` (i.e. [data.table::data.table] or [behavr::behavr])  with additional columns:
+#' @return an object of the same type as `data` (i.e. [data.table::data.table] or [fslbehavr::behavr])  with additional columns:
 #' * `moving` Logical, TRUE iff. motion was detected.
 #' * `beam_crosses` The number of beam crosses
 #' (when the animal crosses x = 0.5 -- that is the midpoint of the region of interest) within the time window
