@@ -166,8 +166,6 @@ sleep_annotation_closure <- function(velocity_correction_coef) {
 }
 
 
-sleep_annotation <- sleep_annotation_closure(0.01)
-
 attr(sleep_annotation, "needed_columns") <- function(motion_detector_FUN = max_velocity_detector,
                                                      ...){
   needed_columns <- attr(motion_detector_FUN, "needed_columns")
