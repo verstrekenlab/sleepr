@@ -11,12 +11,12 @@ test_that("sleep_dam_annotation works", {
   sleep_d <- sleep_dam_annotation(d)
 
   expect_identical(
-    sleepr::sleep_contiguous(d[id==1]$activity > 0, fs=1/60)[1:95],
+    fslsleepr::sleep_contiguous(d[id==1]$activity > 0, fs=1/60)[1:95],
     sleep_d[id==1]$asleep[1:95])
 
 
   expect_identical(
-    sleepr::sleep_contiguous(d[id==5]$activity > 0, fs=1/60)[1:95],
+    fslsleepr::sleep_contiguous(d[id==5]$activity > 0, fs=1/60)[1:95],
     sleep_d[id==5]$asleep[1:95])
 
 })
