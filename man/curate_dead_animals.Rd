@@ -21,7 +21,7 @@ Otherwise, it analysis the data as coming from a single animal. \code{data} must
 \item{resolution}{how much scanning windows overlap. Expressed as a factor (see details).}
 }
 \value{
-an object of the same type as \code{data} (i.e. \link[data.table:data.table]{data.table::data.table} or \link[behavr:behavr]{fslbehavr::behavr}).
+an object of the same type as \code{data} (i.e. \link[data.table:data.table]{data.table::data.table} or \link[fslbehavr:behavr]{fslbehavr::behavr}).
 }
 \description{
 This function detects when individuals have died based on their first (very) long bout of immobility.

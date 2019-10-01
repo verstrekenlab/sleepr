@@ -14,7 +14,7 @@ When it has a key, unique values, are assumed to represent unique individuals (e
 Otherwise, it analysis the data as coming from a single animal. \code{data} must have a column \code{t} representing time.}
 }
 \value{
-an object of the same type as \code{data} (i.e. \link[data.table:data.table]{data.table::data.table} or \link[behavr:behavr]{fslbehavr::behavr}).
+an object of the same type as \code{data} (i.e. \link[data.table:data.table]{data.table::data.table} or \link[fslbehavr:behavr]{fslbehavr::behavr}).
 Each row is a specific bout characterised by three columns.
 \itemize{
 \item \code{t} -- its \emph{onset}

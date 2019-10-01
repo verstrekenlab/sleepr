@@ -2,7 +2,7 @@ context("prepare_data_for_motion_detector")
 
 test_that("prepare_data_for_motion_detector works", {
 
-  library(behavr)
+  library(fslbehavr)
   dt <- toy_ethoscope_data(duration=hours(1))
   dt[, test:= rnorm(nrow(dt))]
   data <- dt[,-c("id")]
@@ -29,7 +29,7 @@ test_that("prepare_data_for_motion_detector works", {
 
 
 test_that("prepare_data_for_motion_detector errors when missing column", {
-  library(behavr)
+  library(fslbehavr)
   dt <- toy_ethoscope_data(duration=hours(1))
   dt[, test:= rnorm(nrow(dt))]
   data <- dt[,-c("id")]

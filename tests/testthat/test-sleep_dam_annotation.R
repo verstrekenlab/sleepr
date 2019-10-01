@@ -6,7 +6,7 @@ test_that("sleep_dam_annotation works", {
   t <- 1L:100L * 60L
   data <- met[,list(t = t,
                     activity = rnorm(100) > .7 ),by="id"]
-  d <- behavr::behavr(data,met)
+  d <- fslbehavr::behavr(data,met)
 
   sleep_d <- sleep_dam_annotation(d)
 

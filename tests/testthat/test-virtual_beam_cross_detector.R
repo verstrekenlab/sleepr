@@ -1,7 +1,7 @@
 context("virtual_beam_cross_detector")
 
 test_that("virtual_beam_cross_detector works", {
-  library(behavr)
+  library(fslbehavr)
   dt <- toy_ethoscope_data(duration=days(.2))
   dt[, test:= rnorm(nrow(dt))]
   data <- dt[,-c("id")]

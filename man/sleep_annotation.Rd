@@ -6,8 +6,8 @@
 \title{Score sleep behaviour from immobility}
 \usage{
 sleep_annotation(data, time_window_length = 10,
-  min_time_immobile = 300, motion_detector_FUN = max_velocity_detector,
-  ...)
+  min_time_immobile = 300, velocity_correction_coef = 0.003,
+  motion_detector_FUN = max_velocity_detector, ...)
 
 sleep_dam_annotation(data, min_time_immobile = 300)
 }

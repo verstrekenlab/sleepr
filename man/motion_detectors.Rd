@@ -32,7 +32,7 @@ a stimulus is delivered (a.k.a. interaction).}
 \item{velocity_threshold}{uncorrected velocity above which an animal is classified as `moving' (for the legacy version).}
 }
 \value{
-an object of the same type as \code{data} (i.e. \link[data.table:data.table]{data.table::data.table} or \link[behavr:behavr]{fslbehavr::behavr})  with additional columns:
+an object of the same type as \code{data} (i.e. \link[data.table:data.table]{data.table::data.table} or \link[fslbehavr:behavr]{fslbehavr::behavr})  with additional columns:
 \itemize{
 \item \code{moving} Logical, TRUE iff. motion was detected.
 \item \code{beam_crosses} The number of beam crosses
