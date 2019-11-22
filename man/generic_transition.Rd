@@ -2,7 +2,7 @@
 % Please edit documentation in R/transition-functions.R
 \name{generic_transition}
 \alias{generic_transition}
-\title{Compute a generatic transition probability fucntion}
+\title{Compute a generatic transition probability function}
 \usage{
 generic_transition(state0, state1)
 }
@@ -19,5 +19,7 @@ A closure that creates a probability transition function based on the
 transition passed in args 1 and 2
 }
 \details{
-The resulting function takes a trace of states where 1 encodes asleep and 0 awake
+The resulting function takes a trace of binary states.
+
+If using the column asleep from a behavr object, 1 encodes asleep and 0 awake
 }
