@@ -14,7 +14,8 @@ Depends:
     R (>= 3.00),
     fslbehavr
 Imports: 
-  data.table
+  data.table,
+  logging
 Suggests: 
     testthat,
     covr,
