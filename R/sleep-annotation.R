@@ -52,6 +52,7 @@
 #' * [bout_analysis] -- to further analyse sleep bouts in terms of onset and length
 #' @references
 #' * The relevant [rethomic tutorial section](https://rethomics.github.io/sleepr) -- on sleep analysis
+#' @import logging
 #' @export
 sleep_annotation <- function(data,
                             time_window_length = 10, #s
@@ -64,6 +65,9 @@ sleep_annotation <- function(data,
   # all columns likely to be needed.
   columns_to_keep <- c("t", "x", "y", "max_velocity", "interactions",
                        "beam_crosses", "moving","asleep", "is_interpolated")
+
+
+  loginfo(sprintf('Minimum time immobile set to %s', min_time_immobile))
 
   wrapped <- function(d){
     if(nrow(d) < 100)
@@ -174,11 +178,15 @@ attr(sleep_annotation, "needed_columns") <- function(motion_detector_FUN = max_v
 }
 
 #' @export
+#' @import logging
 #' @rdname sleep_annotation
 sleep_dam_annotation <- function(data,
                                  min_time_immobile = 300){
 
   asleep = moving = activity = duration = .SD = . = NULL
+
+  loginfo(sprintf('Minimum time immobile set to %s', min_time_immobile))
+
   wrapped <- function(d){
     if(! all(c("activity", "t") %in% names(d)))
       stop("data from DAM should have a column named `activity` and one named `t`")
