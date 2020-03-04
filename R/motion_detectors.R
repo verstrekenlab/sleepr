@@ -145,6 +145,8 @@ attr(virtual_beam_cross_detector, "needed_columns") <- function(...){
 
 #' copy needed columns, and add t_round var for downsampling
 #' @noRd
+#' @importFrom data.table data.table setkeyv
+#' @export
 prepare_data_for_motion_detector <- function(data,
                                              needed_columns,
                                              time_window_length,
@@ -160,4 +162,99 @@ prepare_data_for_motion_detector <- function(data,
   data.table::setkeyv(d, "t_round")
 }
 
+
+
+#' Motion detector for Ethocope data
+#'
+#' Defines whether a *single animal* is moving according to:
+#'
+#' * Validated and corrected subpixel velocity ([max_velocity_detector]), the most rigorous
+#' * Uncorrected subpixel velocity ([max_velocity_detector_legacy])
+#' * Crossing a virtual beam in the middle of the region of interest ([virtual_beam_cross_detector])
+#'
+#' [max_velocity_detector] is the default movement classification for real-time ethoscope experiments.
+#' It is benchmarked against human-generated ground truth.
+#' @name motion_detectors
+#' @param data [data.table::data.table] containing behavioural variables of *a single animal* (no id).
+#' It must have the columns `xy_dist_log10x1000`(for computing subpixel velocity),
+#' `x`(beam cross), `t` and `has_interacted` (whether a stimulus was delivered).
+#' @param velocity_correction_coef an empirical coefficient to correct velocity with respect
+#'  to variable framerate.
+#' @inheritParams sleep_annotation
+#' @param masking_duration number of seconds during which any movement is ignored (velocity is set to 0) after
+#' a stimulus is delivered (a.k.a. interaction).
+#' @return an object of the same type as `data` (i.e. [data.table::data.table] or [fslbehavr::behavr])  with additional columns:
+#' * `moving` Logical, TRUE iff. motion was detected.
+#' * `beam_crosses` The number of beam crosses
+#' (when the animal crosses x = 0.5 -- that is the midpoint of the region of interest) within the time window
+#' * `max_velocity` The maximal velocity within the time window.
+#' The resulting data is sampled at a period equals to `time_window_length`.
+#' @details
+#'  These functions are *rarely called directly*, but typically used is in the context of [sleep_annotation].
+#' @seealso
+#' * [sleep_annotation] -- which requieres a motion detector
+#' @export
+fsl_max_velocity_detector  <- function(data,
+                                       time_window_length,
+                                       velocity_correction_coef =3e-3,
+                                       masking_duration=6
+                                       # threshold = 3e-3
+){
+  dt = x = .N = . = velocity = moving = dist = beam_cross = has_interacted = NULL
+  dt = beam_crossed =  interaction_id = masked = interactions =  NULL
+  xy_dist_log10x1000 = max_velocity = velocity_corrected = NULL
+
+  threshold <- velocity_correction_coef
+
+  d <- prepare_data_for_motion_detector(data,
+                                        c("t", "xy_dist_log10x1000", "x"),
+                                        time_window_length,
+                                        "has_interacted")
+  d[,dt := c(NA,diff(t))]
+  #d[,surface_change := xor_dist * 1e-3]
+  d[,dist := 10^(xy_dist_log10x1000/1000) ]
+  d[,velocity := dist/dt]
+
+  # a = velocity_correction_coef
+
+  d[,beam_cross := abs(c(0,diff(sign(.5 - x))))]
+  d[,beam_cross := as.logical(beam_cross)]
+
+  # masking here
+  if(!"has_interacted" %in% colnames(d)){
+    if(masking_duration >0)
+      warning("Data does not contain an `has_interacted` column.
+              Cannot apply masking!.
+              Set `masking_duration = 0` to ignore masking")
+    d[, has_interacted := 0]
+  }
+
+  d[,interaction_id := cumsum(has_interacted)]
+  d[,
+    masked := t < (t[1] + masking_duration),
+    by=interaction_id
+    ]
+  d[ ,velocity := ifelse(masked & interaction_id != 0, 0, velocity)]
+  d[,beam_cross := !masked & beam_cross]
+  d[,interaction_id := NULL]
+  d[,masked := NULL]
+  # end of masking
+
+  # d[, velocity_corrected :=  velocity / a]
+  d_small <- d[,.(
+    # max_velocity = max(velocity_corrected[2:.N]),
+    max_velocity = max(velocity[2:.N]),
+    # dist = sum(dist[2:.N]),
+    interactions = as.integer(sum(has_interacted)),
+    beam_crosses = as.integer(sum(beam_cross))
+  ), by="t_round"]
+
+  d_small[, moving :=  ifelse(max_velocity > threshold, TRUE,FALSE)]
+  data.table::setnames(d_small, "t_round", "t")
+  d_small
+}
+
+attr(fsl_max_velocity_detector, "needed_columns") <- function(...){
+  c("xy_dist_log10x1000", "x", "has_interacted")
+}
 

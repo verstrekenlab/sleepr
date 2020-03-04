@@ -4,8 +4,13 @@
 \alias{curate_dead_animals}
 \title{Remove -- irrelevant -- data after individual have died}
 \usage{
-curate_dead_animals(data, moving_var = moving, time_window = hours(24),
-  prop_immobile = 0.01, resolution = 24)
+curate_dead_animals(
+  data,
+  moving_var = moving,
+  time_window = hours(24),
+  prop_immobile = 0.01,
+  resolution = 24
+)
 }
 \arguments{
 \item{data}{\link{data.table} containing behavioural variable from or one multiple animals.

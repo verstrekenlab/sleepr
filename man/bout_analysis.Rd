@@ -19,7 +19,7 @@ Each row is a specific bout characterised by three columns.
 \itemize{
 \item \code{t} -- its \emph{onset}
 \item \code{duration} --  its length
-\item \code{<var>} -- a column with the same name as \code{var}. The value of \code{var} for this bout.
+\item \verb{<var>} -- a column with the same name as \code{var}. The value of \code{var} for this bout.
 }
 }
 \description{
