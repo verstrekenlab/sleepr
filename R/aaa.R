@@ -63,70 +63,78 @@ NULL
 #' @import logging
 #' @export
 sleep_annotation_closure <- function(time_window_length=10, min_time_immobile=300, velocity_correction_coef=0.003, motion_detector_FUN = max_velocity_detector, ...) {
-  
+
   sleep_annotation <- function(data,
                                ...
   ){
-    
+
     moving = .N = is_interpolated  = .SD = asleep = NULL
     # all columns likely to be needed.
+
+    logging::loginfo("Environment:")
+    logging::loginfo(glue::glue("time_window_length: {time_window_length}:"))
+    logging::loginfo(glue::glue("min_time_immobile: {min_time_immobile}:"))
+    logging::loginfo(glue::glue("velocity_correction_coef: {velocity_correction_coef}:"))
+    logging::loginfo(glue::glue("motion_detector_FUN: {motion_detector_FUN}:"))
+
+
     columns_to_keep <- c("t", "x", "y", "max_velocity", "interactions",
                          "beam_crosses", "moving","asleep", "is_interpolated")
-    
+
     data_copy <- copy(data)
     data_copy <- data_copy[, phase := ifelse(t %% hours(24) > hours(12), 'D', 'L')]
-    
+
     #wrapped <- function(d, time_window_length=time_window_length){
     wrapped <- function(d) {
       if(nrow(d) < 100)
         return(NULL)
       # todo if t not unique, stop
-      
+
       logging::loginfo("Running motion_detector_FUN")
       d_small <- motion_detector_FUN(d, time_window_length, ...)
-      
+
       if(key(d_small) != "t")
         stop("Key in output of motion_classifier_FUN MUST be `t'")
-      
+
       if(nrow(d_small) < 1)
         return(NULL)
-      
+
       logging::loginfo("Computing time_map")
       # the times to  be queried
       time_map <- data.table::data.table(t = seq(from=d_small[1,t], to=d_small[.N,t], by=time_window_length),
                                          key = "t")
       missing_val <- time_map[!d_small]
-      
+
       d_small <- d_small[time_map,roll=T]
       d_small[,is_interpolated := FALSE]
       d_small[missing_val,is_interpolated:=TRUE]
       d_small[is_interpolated == T, moving := FALSE]
-      
+
       logging::loginfo("Computing sleep")
       d_small[,asleep := sleep_contiguous(moving,
                                           1/time_window_length,
                                           min_valid_time = min_time_immobile)]
-      
+
       logging::loginfo("Removing missing data")
       d_small <- stats::na.omit(d[d_small,
                                   on=c("t"),
                                   roll=T])
-      
+
       logging::loginfo("Subsetting result")
       d_small[, intersect(columns_to_keep, colnames(d_small)), with=FALSE]
     }
-    
+
     if(is.null(key(data_copy))) {
       return(wrapped(data_copy))
     }
-    
+
     data_copy <- data_copy[,
          wrapped(.SD),
          by=key(data_copy)]
-    
+
     return(data_copy)
   }
-  
+
   attr(sleep_annotation, "needed_columns") <- function(motion_detector_FUN = max_velocity_detector,
                                                        ...){
     needed_columns <- attr(motion_detector_FUN, "needed_columns")
@@ -135,28 +143,28 @@ sleep_annotation_closure <- function(time_window_length=10, min_time_immobile=30
   }
 
   return(sleep_annotation)
-  
+
 }
 
 
 #' @export
 #' @import logging
-# @rdname 
+# @rdname
 sleep_dam_annotation_closure <- function(min_time_immobile=300) {
-  
+
   sleep_dam_annotation <- function(data) {
-    
+
     asleep = moving = activity = duration = .SD = . = NULL
-    
+
     loginfo(sprintf('Minimum time immobile set to %s', min_time_immobile))
-    
+
     data_copy <- copy(data)
     data_copy <- data_copy[, phase := ifelse(t %% hours(24) > hours(12), 'D', 'L')]
-    
+
     wrapped <- function(d){
       if(! all(c("activity", "t") %in% names(d)))
         stop("data from DAM should have a column named `activity` and one named `t`")
-      
+
       out <- data.table::copy(d)
       col_order <- c(colnames(d),"moving", "asleep")
       out[, moving := activity > 0]
@@ -166,20 +174,20 @@ sleep_dam_annotation_closure <- function(min_time_immobile=300) {
       data.table::setcolorder(out, col_order)
       return(out)
     }
-    
+
     if(is.null(key(data_copy)))
       return(wrapped(data_copy))
-    
+
     data_copy <- data_copy[,
          wrapped(.SD),
          by=key(data_copy)]
-    
+
     metadata <- data_copy[,meta=T]
     metadata$machine_name <- metadata$file_info %>% lapply(function(x) stringr::str_split(string = x$file, pattern = "\\.")[[1]][1]) %>% unlist
     setmeta(data_copy, metadata)
     return(data_copy)
-        
+
   }
-  
+
   return(sleep_dam_annotation)
 }
