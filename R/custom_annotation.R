@@ -9,8 +9,9 @@ distance_sum <- function(d, time_window_length) {
   d
 }
 
-attr(distance_sum, "needed_columns") <- c("t", "dist_sum")
-
+attr(distance_sum, "needed_columns") <- function(...) {
+  c("t", "dist_sum")
+}
 #' @export
 #' @import data.table
 velocity_avg <- function(d, time_window_length) {
@@ -27,8 +28,9 @@ velocity_avg <- function(d, time_window_length) {
   d2 <- d2[, .(vel_avg = mean(velocity)),  by = 't_round']
   d2
 }
-attr(velocity_avg, "needed_columns") <- c("t", "vel_avg")
-
+attr(velocity_avg, "needed_columns") <- function(...) {
+  c("t", "vel_avg")
+}
 #' Custom annotation from the dt_raw file
 #'
 #' This function gives aggregates a variable of interest in a custom way
@@ -57,7 +59,7 @@ custom_annotation_closure <- function(custom_function) {
   ){
     moving = .N = is_interpolated  = .SD = asleep = NULL
     # all columns likely to be needed.
-    columns_to_keep <- c("t", attr(custom_function, 'needed_columns'))
+    columns_to_keep <- c("t", attr(custom_function, 'needed_columns')())
 
 
     wrapped <- function(d){
@@ -94,7 +96,7 @@ custom_annotation_closure <- function(custom_function) {
          by=key(data)]
   }
 
-  attr(custom_annotation, "needed_columns") <- attr(custom_function, 'needed_columns')
+  attr(custom_annotation, "needed_columns") <- attr(custom_function, 'needed_columns')()
 
   return(custom_annotation)
 }

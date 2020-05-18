@@ -2,19 +2,15 @@
 % Please edit documentation in R/sleep-annotation.R
 \name{sleep_annotation}
 \alias{sleep_annotation}
-\alias{sleep_dam_annotation}
 \title{Score sleep behaviour from immobility}
 \usage{
 sleep_annotation(
   data,
-  time_window_length = 10,
-  min_time_immobile = 300,
-  velocity_correction_coef = 0.003,
+  time_window_length = time_window_length,
+  min_time_immobile = min_time_immobile,
   motion_detector_FUN = max_velocity_detector,
   ...
 )
-
-sleep_dam_annotation(data, min_time_immobile = 300)
 }
 \arguments{
 \item{data}{\link{data.table} containing behavioural variable from or one multiple animals.
