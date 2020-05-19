@@ -6,6 +6,7 @@ NULL
 
 
 
+
 #' Score sleep behaviour from immobility
 #'
 #' This function first uses a motion classifier to decide whether an animal is moving during a given time window.
@@ -62,20 +63,24 @@ NULL
 #' * The relevant [rethomic tutorial section](https://rethomics.github.io/sleepr) -- on sleep analysis
 #' @import logging
 #' @export
-sleep_annotation_closure <- function(time_window_length=10, min_time_immobile=300, velocity_correction_coef=0.003, motion_detector_FUN = max_velocity_detector, ...) {
+sleep_annotation_wrapper <- function(time_window_length.=10, min_time_immobile.=300, velocity_correction_coef.=0.003, motion_detector_FUN. = max_velocity_detector, ...) {
+
+  logging::logwarn('Wrapping environment')
+  logging::logwarn(glue::glue('velocity_correction_coef.: {velocity_correction_coef.}'))
+  logging::logwarn(glue::glue('min_time_immobile.: {min_time_immobile.}'))
+  logging::logwarn(glue::glue('time_window_length.: {time_window_length.}'))
+
 
   sleep_annotation <- function(data,
+                               time_window_length = time_window_length.,
+                               min_time_immobile = min_time_immobile.,
+                               velocity_correction_coef = velocity_correction_coef.,
+                               motion_detector_FUN = motion_detector_FUN.,
                                ...
   ){
 
     moving = .N = is_interpolated  = .SD = asleep = NULL
     # all columns likely to be needed.
-
-    logging::loginfo("Environment:")
-    logging::loginfo(glue::glue("time_window_length: {time_window_length}:"))
-    logging::loginfo(glue::glue("min_time_immobile: {min_time_immobile}:"))
-    logging::loginfo(glue::glue("velocity_correction_coef: {velocity_correction_coef}:"))
-    logging::loginfo(glue::glue("motion_detector_FUN: {motion_detector_FUN}:"))
 
 
     columns_to_keep <- c("t", "x", "y", "max_velocity", "interactions",
@@ -84,14 +89,21 @@ sleep_annotation_closure <- function(time_window_length=10, min_time_immobile=30
     data_copy <- copy(data)
     data_copy <- data_copy[, phase := ifelse(t %% hours(24) > hours(12), 'D', 'L')]
 
-    #wrapped <- function(d, time_window_length=time_window_length){
-    wrapped <- function(d) {
+    browser()
+
+    logging::logwarn('Enclosed evironment')
+    logging::logwarn(glue::glue('velocity_correction_coef: {velocity_correction_coef}'))
+    logging::logwarn(glue::glue('min_time_immobile: {min_time_immobile}'))
+    logging::logwarn(glue::glue('time_window_length: {time_window_length}'))
+
+    wrapped <- function(d, ...) {
+
       if(nrow(d) < 100)
         return(NULL)
       # todo if t not unique, stop
 
       logging::loginfo("Running motion_detector_FUN")
-      d_small <- motion_detector_FUN(d, time_window_length, ...)
+      d_small <- motion_detector_FUN(d, time_window_length., ...)
 
       if(key(d_small) != "t")
         stop("Key in output of motion_classifier_FUN MUST be `t'")
@@ -122,6 +134,8 @@ sleep_annotation_closure <- function(time_window_length=10, min_time_immobile=30
 
       logging::loginfo("Subsetting result")
       d_small[, intersect(columns_to_keep, colnames(d_small)), with=FALSE]
+
+      return(d_small)
     }
 
     if(is.null(key(data_copy))) {
@@ -129,7 +143,7 @@ sleep_annotation_closure <- function(time_window_length=10, min_time_immobile=30
     }
 
     data_copy <- data_copy[,
-         wrapped(.SD),
+         wrapped(.SD, ...),
          by=key(data_copy)]
 
     return(data_copy)
@@ -150,9 +164,9 @@ sleep_annotation_closure <- function(time_window_length=10, min_time_immobile=30
 #' @export
 #' @import logging
 # @rdname
-sleep_dam_annotation_closure <- function(min_time_immobile=300) {
+sleep_dam_annotation_wrapper <- function(min_time_immobile=300) {
 
-  sleep_dam_annotation <- function(data) {
+  sleep_dam_annotation <- function(data, min_time_immobile) {
 
     asleep = moving = activity = duration = .SD = . = NULL
 

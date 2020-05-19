@@ -6,9 +6,11 @@
 \usage{
 sleep_annotation(
   data,
-  time_window_length = time_window_length,
-  min_time_immobile = min_time_immobile,
-  motion_detector_FUN = max_velocity_detector,
+  time_window_length = time_window_length.,
+  min_time_immobile = min_time_immobile.,
+  velocity_correction_coef,
+  velocity_correction_coef.,
+  motion_detector_FUN = motion_detector_FUN.,
   ...
 )
 }

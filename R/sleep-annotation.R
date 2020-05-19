@@ -73,10 +73,10 @@ sleep_annotation <- function() {
 
 #' @export
 sleep_dam_annotation <- function() {
-  
+
 }
 
-sleep_dam_annotation <- sleep_dam_annotation_closure()
+sleep_dam_annotation <- sleep_dam_annotation_wrapper()
 
-sleep_annotation <- sleep_annotation_closure()
+sleep_annotation <- sleep_annotation_wrapper()
 

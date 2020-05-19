@@ -25,5 +25,5 @@ Encoding: UTF-8
 LazyData: true
 URL: https://gitlab.com/flysleeplab/fsl-retho/sleepr
 BugReports: https://gitlab.com/flysleeplab/fsl-retho/sleepr/issues
-RoxygenNote: 7.0.2
+RoxygenNote: 7.1.0
 Roxygen: list(markdown = TRUE)
