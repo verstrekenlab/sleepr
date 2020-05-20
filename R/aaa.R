@@ -61,14 +61,14 @@ NULL
 #' * The relevant [rethomic tutorial section](https://rethomics.github.io/sleepr) -- on sleep analysis
 #' @import logging
 #' @export
-sleep_annotation_wrapper <- function(time_window_length.=10, min_time_immobile.=300, velocity_correction_coef.=0.003, motion_detector_FUN. = max_velocity_detector, verbose. = TRUE ...) {
+sleep_annotation_wrapper <- function(time_window_length.=10, min_time_immobile.=300, velocity_correction_coef.=0.003, motion_detector_FUN. = max_velocity_detector, verbose. = TRUE, ...) {
 
   sleep_annotation <- function(data,
                                time_window_length = time_window_length.,
                                min_time_immobile = min_time_immobile.,
                                velocity_correction_coef = velocity_correction_coef.,
                                motion_detector_FUN = motion_detector_FUN.,
-                               verbose = verbose
+                               verbose = verbose,
                                ...
   ){
 
