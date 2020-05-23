@@ -39,6 +39,8 @@ max_velocity_detector  <- function(data,
   dt = beam_crossed =  interaction_id = masked = interactions =  NULL
   xy_dist_log10x1000 = max_velocity = velocity_corrected = NULL
 
+  message(sprintf("Velocity correction coefficient: %#.4f", velocity_correction_coef))
+
   d <- prepare_data_for_motion_detector(data,
                                         c("t", "xy_dist_log10x1000", "x"),
                                         time_window_length,

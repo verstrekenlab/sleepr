@@ -12,12 +12,13 @@ euclidean_distance <- function(x, y) {
 
 
 
+
 #' Score sleep behaviour from immobility
 #'
 #' This function first uses a motion classifier to decide whether an animal is moving during a given time window.
 #' Then, it defines sleep as contiguous immobility for a minimum duration.
 #'
-#' @param data [data.table] containing behavioural variable from or one multiple animals.
+#' @param data  [data.table] containing behavioural variable from or one multiple animals.
 #' When it has a key, unique values, are assumed to represent unique individuals (e.g. in a [behavr] table).
 #' Otherwise, it analysis the data as coming from a single animal. `data` must have a column `t` representing time.
 #' @param time_window_length number of seconds to be used by the motion classifier.
@@ -66,17 +67,126 @@ euclidean_distance <- function(x, y) {
 #' * [bout_analysis] -- to further analyse sleep bouts in terms of onset and length
 #' @references
 #' * The relevant [rethomic tutorial section](https://rethomics.github.io/sleepr) -- on sleep analysis
-#' @import logging
 #' @export
-sleep_annotation <- function() {
+sleep_annotation <- function(data,
+                             time_window_length = 10,
+                             min_time_immobile = 300,
+                             motion_detector_FUN = max_velocity_detector,
+                             ...
+
+){
+
+  moving = .N = is_interpolated  = .SD = asleep = NULL
+  # all columns likely to be needed.
+
+
+  columns_to_keep <- c("t", "x", "y", "max_velocity", "interactions",
+                       "beam_crosses", "moving","asleep", "is_interpolated")
+  message(sprintf("Time window length: %f", time_window_length))
+  message(sprintf("Minimum time immobile: %f", min_time_immobile))
+
+  data_copy <- copy(data)
+  data_copy <- data_copy[, phase := ifelse(t %% hours(24) > hours(12), 'D', 'L')]
+
+  wrapped <- function(d) {
+    if(nrow(d) < 100)
+      return(NULL)
+    # todo if t not unique, stop
+
+    message("Running motion_detector_FUN")
+    d_small <- motion_detector_FUN(d, time_window_length, ...)
+
+    if(key(d_small) != "t")
+      stop("Key in output of motion_classifier_FUN MUST be `t'")
+
+    if(nrow(d_small) < 1)
+      return(NULL)
+
+    message("Computing time_map")
+    # the times to  be queried
+    time_map <- data.table::data.table(t = seq(from=d_small[1,t], to=d_small[.N,t], by=time_window_length),
+                                       key = "t")
+    missing_val <- time_map[!d_small]
+
+    d_small <- d_small[time_map,roll=T]
+    d_small[,is_interpolated := FALSE]
+    d_small[missing_val,is_interpolated:=TRUE]
+    d_small[is_interpolated == T, moving := FALSE]
+
+    message("Computing sleep")
+    d_small[,asleep := sleep_contiguous(moving,
+                                        1/time_window_length,
+                                        min_valid_time = min_time_immobile)]
+
+    message("Removing missing data")
+    d_small <- stats::na.omit(d[d_small,
+                                on=c("t"),
+                                roll=T])
+
+    message("Subsetting result")
+    d_small[, intersect(columns_to_keep, colnames(d_small)), with=FALSE]
+
+    return(d_small)
+  }
+
+  if(is.null(key(data_copy))) {
+    return(wrapped(data_copy))
+  }
+
+  data_copy <- data_copy[,
+                         wrapped(.SD),
+                         by=key(data_copy)]
+
+  return(data_copy)
 }
 
+attr(sleep_annotation, "needed_columns") <- function(
+  motion_detector_FUN = max_velocity_detector,
+  ...
+  ) {
+  needed_columns <- attr(motion_detector_FUN, "needed_columns")
+  if(!is.null(needed_columns)) needed_columns(...)
+}
+
+
 #' @export
-sleep_dam_annotation <- function() {
+# @rdname
+
+sleep_dam_annotation <- function(data, min_time_immobile=300) {
+
+  asleep = moving = activity = duration = .SD = . = NULL
+
+  loginfo(sprintf('Minimum time immobile set to %s', min_time_immobile))
+
+  data_copy <- copy(data)
+  data_copy <- data_copy[, phase := ifelse(t %% hours(24) > hours(12), 'D', 'L')]
+
+  wrapped <- function(d){
+    if(! all(c("activity", "t") %in% names(d)))
+      stop("data from DAM should have a column named `activity` and one named `t`")
+
+    out <- data.table::copy(d)
+    col_order <- c(colnames(d),"moving", "asleep")
+    out[, moving := activity > 0]
+    bdt <- bout_analysis(moving, out)
+    bdt[, asleep := duration >= min_time_immobile & !moving]
+    out <- bdt[,.(t, asleep)][out, on = "t", roll=TRUE]
+    data.table::setcolorder(out, col_order)
+    return(out)
+  }
+
+  if(is.null(key(data_copy)))
+    return(wrapped(data_copy))
+
+  data_copy <- data_copy[,
+                         wrapped(.SD),
+                         by=key(data_copy)]
+
+  metadata <- data_copy[,meta=T]
+  metadata$machine_name <- metadata$file_info %>% lapply(function(x) stringr::str_split(string = x$file, pattern = "\\.")[[1]][1]) %>% unlist
+  setmeta(data_copy, metadata)
+  return(data_copy)
 
 }
 
-sleep_dam_annotation <- sleep_dam_annotation_wrapper()
-
-sleep_annotation <- sleep_annotation_wrapper()
 
