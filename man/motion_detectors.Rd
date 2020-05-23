@@ -32,9 +32,6 @@ fsl_max_velocity_detector(
 It must have the columns \code{xy_dist_log10x1000}(for computing subpixel velocity),
 \code{x}(beam cross), \code{t} and \code{has_interacted} (whether a stimulus was delivered).}
 
-\item{time_window_length}{number of seconds to be used by the motion classifier.
-This corresponds to the sampling period of the output data.}
-
 \item{velocity_correction_coef}{an empirical coefficient to correct velocity with respect
 to variable framerate.}
 

@@ -1,18 +1,3 @@
-#' Compute euclidean distance between two points
-#'
-#' @param x numeric vector
-#' @param y numeric vector
-#' @export
-euclidean_distance <- function(x, y) {
-  square_diffs_x <- (x[-1]-x[1:(length(x)-1)])**2 # horizontal side of each triangle squared
-  square_diffs_y <- (y[-1]-y[1:(length(y)-1)])**2 # vertical side of each triangle squared
-  result <- c(NA, sqrt(square_diffs_x +  square_diffs_y)) # sqrt of the sum of squares
-  return(result)
-}
-
-
-
-
 #' Score sleep behaviour from immobility
 #'
 #' This function first uses a motion classifier to decide whether an animal is moving during a given time window.
@@ -66,7 +51,6 @@ euclidean_distance <- function(x, y) {
 #' * [motion_detectors] -- options for the `motion_detector_FUN` argument
 #' * [bout_analysis] -- to further analyse sleep bouts in terms of onset and length
 #' @references
-#' * The relevant [rethomic tutorial section](https://rethomics.github.io/sleepr) -- on sleep analysis
 #' @export
 sleep_annotation <- function(data,
                              time_window_length = 10,
