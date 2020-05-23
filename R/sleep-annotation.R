@@ -56,21 +56,25 @@ sleep_annotation <- function(data,
                              time_window_length = 10,
                              min_time_immobile = 300,
                              motion_detector_FUN = max_velocity_detector,
+                             extra_columns = NULL,
                              ...
 
 ){
 
   moving = .N = is_interpolated  = .SD = asleep = NULL
-  # all columns likely to be needed.
 
 
-  columns_to_keep <- c("t", "x", "y", "max_velocity", "interactions",
-                       "beam_crosses", "moving","asleep", "is_interpolated")
   message(sprintf("Time window length: %f", time_window_length))
   message(sprintf("Minimum time immobile: %f", min_time_immobile))
 
-  data_copy <- copy(data)
-  data_copy <- data_copy[, phase := ifelse(t %% hours(24) > hours(12), 'D', 'L')]
+  # all columns likely to be needed.
+  columns_to_keep <- c(
+    extra_columns,
+    c(
+      "t", "x", "y", "max_velocity", "interactions",
+      "beam_crosses", "moving","asleep", "is_interpolated"
+    )
+  )
 
   wrapped <- function(d) {
     if(nrow(d) < 100)
@@ -86,42 +90,53 @@ sleep_annotation <- function(data,
     if(nrow(d_small) < 1)
       return(NULL)
 
-    message("Computing time_map")
-    # the times to  be queried
-    time_map <- data.table::data.table(t = seq(from=d_small[1,t], to=d_small[.N,t], by=time_window_length),
-                                       key = "t")
-    missing_val <- time_map[!d_small]
-
-    d_small <- d_small[time_map,roll=T]
-    d_small[,is_interpolated := FALSE]
-    d_small[missing_val,is_interpolated:=TRUE]
-    d_small[is_interpolated == T, moving := FALSE]
+    # Set moving to FALSE for windows where no data is available
+    d_small <- interpolate(d_small, time_window_length)
 
     message("Computing sleep")
-    d_small[,asleep := sleep_contiguous(moving,
-                                        1/time_window_length,
-                                        min_valid_time = min_time_immobile)]
+    # Actually annotate sleep
+    # * Use moving as input
+    # * Sampling frequency tells the algorithm
+    # how frequently is moving sampled i.e.
+    # how many seconds pass between each moving score
+    # i.e. this frequency MUST be 1 / time_window_length
+    # since time_window_length is the size of the windows
+    # used when binning the time series in the moving annotation
+    # * min_time_immobile tells the algorithm how many seconds must pass
+    # for a run of non moving states to be considered as sleep
+    # default of 300 s -> 5 minutes
+    d_small[,asleep := sleep_contiguous(
+      moving,
+      1/time_window_length,
+      min_valid_time = min_time_immobile
+    )]
 
+    # TODO What is this doing exactly?
     message("Removing missing data")
-    d_small <- stats::na.omit(d[d_small,
-                                on=c("t"),
-                                roll=T])
+    d_small <- stats::na.omit(
+      d[d_small, on = c("t"), roll = T]
+    )
 
     message("Subsetting result")
+    # keep the columns_to_keep only
     d_small[, intersect(columns_to_keep, colnames(d_small)), with=FALSE]
 
     return(d_small)
+  } # end of wrapped
+
+  # call wrapped on the whole dataframe at once
+  # if there is no key
+  if(is.null(key(data))) {
+    return(wrapped(data))
   }
 
-  if(is.null(key(data_copy))) {
-    return(wrapped(data_copy))
-  }
+  # however, if there is a key, call wrapped separately
+  # for each block with the same key
+  # (split-apply-combine)
+  # this way we annotate for each fly separately
+  data <- data[, wrapped(.SD), by = key(data)]
 
-  data_copy <- data_copy[,
-                         wrapped(.SD),
-                         by=key(data_copy)]
-
-  return(data_copy)
+  return(data)
 }
 
 attr(sleep_annotation, "needed_columns") <- function(

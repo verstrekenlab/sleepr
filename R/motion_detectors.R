@@ -31,9 +31,8 @@
 #' @export
 max_velocity_detector  <- function(data,
                                    time_window_length,
-                                   velocity_correction_coef =3e-3,
-                                   masking_duration=6,
-                                   threshold = 1
+                                   velocity_correction_coef = 3e-3,
+                                   masking_duration = 6
                                    ){
   dt = x = .N = . = velocity = moving = dist = beam_cross = has_interacted = NULL
   dt = beam_crossed =  interaction_id = masked = interactions =  NULL
@@ -41,51 +40,129 @@ max_velocity_detector  <- function(data,
 
   message(sprintf("Velocity correction coefficient: %#.4f", velocity_correction_coef))
 
+  ## Preprocessing
+  ## ----
+  # get only the columns that the motion detector needs
+  # bin the data by windows of time_window_length seconds
+  # remove sparse data i.e.
+  # data in windows with very few data already
+  # very few means < 20 datapoints in 1 minute
   d <- prepare_data_for_motion_detector(data,
                                         c("t", "xy_dist_log10x1000", "x"),
                                         time_window_length,
                                         "has_interacted")
-  d[,dt := c(NA,diff(t))]
+
+  ## Define velocity as the distance traversed
+  ## between two consecutive frames and the time
+  ## between them
+  ## Unit: fraction_of_roi_width / s
+  ## TODO Change the code so it becomes mm / s
+  ## or something with a direct physical interpretation
+  ## ----
+  # compute the inter frame time
+  d[,dt := c(NA, diff(t))]
   #d[,surface_change := xor_dist * 1e-3]
+
+  # restore the distance from the log-transformed variable
   d[,dist := 10^(xy_dist_log10x1000/1000) ]
+
+  # compute the velocity by dividing distance with time differences
   d[,velocity := dist/dt]
 
   a = velocity_correction_coef
+  ## ----
 
+  ## Compute beam crosses for DAM-like data generation
+  ## ----
+  # compute the side the fly is in on each frame
+  # -1 for right and 1 for left (does not matter which is which)
+  # changes in side are thus encoded as a change in sign
+  # making a diff of the side thus returns 0 when the side does not change
+  # and 1/-1 when it does
+  # we dont care about the direction i.e. whether it is 1 or -1
+  # so take the absolute value and take that as a beam cross
   d[,beam_cross := abs(c(0,diff(sign(.5 - x))))]
-  d[,beam_cross := as.logical(beam_cross)]
 
-  # masking here
+  # encode the 1/0 as True/False i.e. a properly boolean variable
+  d[,beam_cross := as.logical(beam_cross)]
+  ## ----
+
+
+  ## Masking
+  ## Intended to ignore activity within masking_duration (default 6) seconds
+  ## after an interaction happens
+  ## ----
   if(!"has_interacted" %in% colnames(d)){
-    if(masking_duration >0)
+    if(masking_duration > 0)
       warning("Data does not contain an `has_interacted` column.
               Cannot apply masking!.
               Set `masking_duration = 0` to ignore masking")
     d[, has_interacted := 0]
   }
 
+  # create a unique identifier for every interaction
+  # this is done so we can split d
+  # so rows within the same block share last interaction
   d[,interaction_id := cumsum(has_interacted)]
+
+  # masked becomes TRUE if t is within masking_duration
+  # after t[1]
+  # since the first row of the block
+  # represents the last interaction
+  # the time of the interaction is t[1]
   d[,
     masked := t < (t[1] + masking_duration),
     by=interaction_id
     ]
+
+  # velocity is 0 if the mask is TRUE
+  # all the data up to the first interaction in the whole experiment time course
+  # is masked with the above protocol (under interaction_id 0)
+  # so ignore the mask if interaction_id is 0 because there was no interaction
   d[ ,velocity := ifelse(masked & interaction_id != 0, 0, velocity)]
+
+  # in the same way, beam cross can only be TRUE if masked is FALSE
   d[,beam_cross := !masked & beam_cross]
+
+  # remove the interaction_id and masked columns
+  # to preserve state
   d[,interaction_id := NULL]
   d[,masked := NULL]
-  # end of masking
+  ## ----
 
+  # velocity correction to handle
+  # velocity being dependent on FPS
+  # See quentin's Thesis
+  # PDF -> https://spiral.imperial.ac.uk:8443/handle/10044/1/69514
+  # First paragraph in https://github.com/rethomics/sleepr/issues/7#issuecomment-579297206
   d[, velocity_corrected :=  velocity  * dt  /a]
+
+  # Get a central summary value for variables of interest
+  # for each window given by t_round
+  # See prepare_data_for_motion_detector to learn
+  # how is t_round computed
+  # velocity_corrected -> max
+  # has_interacted -> sum
+  # beam_cross -> sum
   d_small <- d[,.(
     max_velocity = max(velocity_corrected[2:.N]),
     # dist = sum(dist[2:.N]),
     interactions = as.integer(sum(has_interacted)),
     beam_crosses = as.integer(sum(beam_cross))
-  ), by="t_round"]
+  ), by = "t_round"]
 
-  d_small[, moving :=  ifelse(max_velocity > threshold, TRUE,FALSE)]
+  # Gist of the program!!
+  # Score movement as TRUE/FALSE value for every window
+  # Score is TRUE if max_velocity of the window is > 1
+  # Score FALSE otherwise
+  d_small[, moving :=  ifelse(max_velocity > 1, TRUE,FALSE)]
+
+  # Set t_round as the representative time of the window
+  # i.e. t becomes the begining of the window and not the t
+  # of the first frame in the window
   data.table::setnames(d_small, "t_round", "t")
-  d_small
+
+  return(d_small)
 }
 
 attr(max_velocity_detector, "needed_columns") <- function(...){
@@ -136,7 +213,7 @@ virtual_beam_cross_detector <- function(data, time_window_length){
 
   d_small <- d[,
                .(moving = any(beam_cross)),
-               by="t_round"]
+               by = "t_round"]
   data.table::setnames(d_small, "t_round", "t")
   d_small
 }
@@ -152,15 +229,39 @@ attr(virtual_beam_cross_detector, "needed_columns") <- function(...){
 prepare_data_for_motion_detector <- function(data,
                                              needed_columns,
                                              time_window_length,
-                                             optional_columns=NULL){
+                                             optional_columns = NULL){
   # todo assert no key/unique
-  t_round = NULL
+  t_round <- NULL
   if(! all(needed_columns %in% names(data)))
-    stop(sprintf("data from ethoscope should have columns named %s!", paste(needed_columns, collapse=", ")))
-  needed_columns <- unique(c(needed_columns, intersect(names(data),optional_columns)))
-  d <- data.table::copy(data[, needed_columns, with=FALSE])
+    stop(sprintf(
+      "data from ethoscope should have columns named %s!",
+      paste(needed_columns, collapse = ", ")
+    ))
+
+  # include the optional columns if available
+  # and make sure the resulting colums are unique
+  # optional_columns is tipically columns that the motion detector can use
+  # but they are not required i.e. has_interacted for instance
+  needed_columns <- unique(c(needed_columns, intersect(names(data), optional_columns)))
+
+  # retrieve data containing only the needed columns
+  d <- data.table::copy(data[, needed_columns, with = FALSE])
+
+  # compute t_round
+  # t_round becomes the same for all datapoints in the same window
+  # even if their exact t is not
+  # each window is time_window_length seconds long
+  # the first window starts at t = 0 s
+  # the windows do not overlap
+  # for t in [300, 309.999] t_round = 300
+  # for t 310, it is 310 i.e. data form 310 and thereafter is analyzed as another window
   d[, t_round := time_window_length * floor(t /time_window_length)]
+
+  # remove datapoints belonging to windows (of size 60 seconds by default)
+  # where the number of datapoints is less than a default of 20.
   d <- curate_sparse_roi_data(d)
+
+  # TODO in order to ...
   data.table::setkeyv(d, "t_round")
 }
 
