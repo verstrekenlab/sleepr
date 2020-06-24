@@ -12,8 +12,7 @@ max_velocity_detector(
   data,
   time_window_length,
   velocity_correction_coef = 0.003,
-  masking_duration = 6,
-  threshold = 1
+  masking_duration = 6
 )
 
 max_velocity_detector_legacy(data, velocity_threshold = 0.006)
@@ -31,6 +30,9 @@ fsl_max_velocity_detector(
 \item{data}{\link[data.table:data.table]{data.table::data.table} containing behavioural variables of \emph{a single animal} (no id).
 It must have the columns \code{xy_dist_log10x1000}(for computing subpixel velocity),
 \code{x}(beam cross), \code{t} and \code{has_interacted} (whether a stimulus was delivered).}
+
+\item{time_window_length}{number of seconds to be used by the motion classifier.
+This corresponds to the sampling period of the output data.}
 
 \item{velocity_correction_coef}{an empirical coefficient to correct velocity with respect
 to variable framerate.}

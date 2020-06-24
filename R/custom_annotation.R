@@ -9,7 +9,7 @@ distance_sum_enclosed <- function(d, time_window_length) {
   d
 }
 
-attr(distance_sum, "needed_columns") <- function(...) {
+attr(distance_sum_enclosed, "needed_columns") <- function(...) {
   c("t", "dist_sum")
 }
 
@@ -35,9 +35,9 @@ attr(velocity_avg_enclosed, "needed_columns") <- function(...) {
 
 movement_detector_enclosed <- function(data, time_window_length=10, threshold=1) {
 
-  # data$core_movement <- data$xy_dist_log10x1000
+  # data$body_movement <- data$xy_dist_log10x1000
   d <- prepare_data_for_motion_detector(data,
-                                        c("t", "core_movement", "x"),
+                                        c("t", "body_movement", "x"),
                                         time_window_length,
                                         "has_interacted")
 
@@ -45,7 +45,7 @@ movement_detector_enclosed <- function(data, time_window_length=10, threshold=1)
   #d[,surface_change := xor_dist * 1e-3]
 
   # restore the distance from the log-transformed variable
-  d[, movement := 10 ^ (core_movement / 1000) ]
+  d[, movement := 10 ^ (body_movement / 1000) ]
 
   # Get a central summary value for variables of interest
   # for each window given by t_round
@@ -143,7 +143,10 @@ custom_annotation_wrapper <- function(custom_function) {
   return(custom_annotation)
 }
 
-
+#' @export
+velocity_avg <- function()  {}
 velocity_avg <- custom_annotation_wrapper(velocity_avg_enclosed)
-dist_sum <- custom_annotation_wrapper(distance_sum_enclosed)
+
+#' @export
+movement_detector <- function()  {}
 movement_detector <- custom_annotation_wrapper(movement_detector_enclosed)

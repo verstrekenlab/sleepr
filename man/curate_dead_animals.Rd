@@ -13,6 +13,10 @@ curate_dead_animals(
 )
 }
 \arguments{
+\item{data}{\link{data.table} containing behavioural variable from or one multiple animals.
+When it has a key, unique values, are assumed to represent unique individuals (e.g. in a \link{behavr} table).
+Otherwise, it analysis the data as coming from a single animal. \code{data} must have a column \code{t} representing time.}
+
 \item{moving_var}{logical variable in \code{data} used to define the moving (alive) state (default is \code{moving})}
 
 \item{time_window}{window during which to define death (default is one day)}

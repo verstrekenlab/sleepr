@@ -8,6 +8,10 @@ bout_analysis(var, data)
 }
 \arguments{
 \item{var}{name of the variable to use from \code{data}}
+
+\item{data}{\link{data.table} containing behavioural variable from or one multiple animals.
+When it has a key, unique values, are assumed to represent unique individuals (e.g. in a \link{behavr} table).
+Otherwise, it analysis the data as coming from a single animal. \code{data} must have a column \code{t} representing time.}
 }
 \value{
 an object of the same type as \code{data} (i.e. \link[data.table:data.table]{data.table::data.table} or \link[fslbehavr:behavr]{fslbehavr::behavr}).
