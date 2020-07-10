@@ -39,12 +39,12 @@ attr(velocity_avg_enclosed, "needed_columns") <- function(...) {
 #' @param statistic Name of the column resulting from aggregation e.g. max_movement
 #' @param score Name of the column providing a score i.e. category to the statistic e.g. micromovement
 #' score is usually a binary variable i.e. TRUE/FALSE
-movement_detector_enclosed <- function(func, feature, statistic, score) {
-  closure <- function(data, preproc_FUN=NULL, time_window_length=10, threshold=1) {
+movement_detector_enclosed <- function(preproc_FUN, func, feature, statistic, score) {
+  closure <- function(data, time_window_length=10, threshold=1) {
 
     # data$body_movement <- data$xy_dist_log10x1000
     d <- prepare_data_for_motion_detector(data,
-                                          c("t", statistic, "x"),
+                                          c("t", feature, "x"),
                                           time_window_length,
                                           "has_interacted")
 
@@ -72,7 +72,8 @@ movement_detector_enclosed <- function(func, feature, statistic, score) {
     # Score FALSE otherwise
     d_small[, score :=  ifelse(statistic > threshold, TRUE,FALSE)]
     setnames(d_small, "score", score)
-    setnames(d_small, "feature", feature)
+    setnames(d_small, "statistic", statistic)
+    # setnames(d_small, "feature", feature)
 
     # Set t_round as the representative time of the window
     # i.e. t becomes the begining of the window and not the t
@@ -163,10 +164,15 @@ velocity_avg <- custom_annotation_wrapper(velocity_avg_enclosed)
 
 #' @export
 max_movement_detector <- function()  {}
-max_movement_detector <- custom_annotation_wrapper(movement_detector_enclosed(log10x1000_inv, max, "max_movement", "micromovement"))
+max_movement_detector <- custom_annotation_wrapper(movement_detector_enclosed(function(x) x, max, "body_movement", "max_movement", "micromovement"))
 
 #' @export
 median_movement_detector <- function() {}
-median_movement_detector <- custom_annotation_wrapper(movement_detector_enclosed(log10x1000_inv, median, "median_movement", "micromovement"))
+median_movement_detector <- custom_annotation_wrapper(movement_detector_enclosed(function(x) x, median, "body_movement", "median_movement", "micromovement"))
+
+#' @export
+sum_movement_detector <- function() {}
+sum_movement_detector <- custom_annotation_wrapper(movement_detector_enclosed(function(x) x, sum, "body_movement", "sum_movement", "micromovement"))
+
 
 
