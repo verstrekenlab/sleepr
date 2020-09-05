@@ -2,6 +2,7 @@
 % Please edit documentation in R/sleep-annotation.R
 \name{sleep_annotation}
 \alias{sleep_annotation}
+\alias{sleep_dam_annotation}
 \title{Score sleep behaviour from immobility}
 \usage{
 sleep_annotation(
@@ -9,9 +10,10 @@ sleep_annotation(
   time_window_length = 10,
   min_time_immobile = 300,
   motion_detector_FUN = max_velocity_detector,
-  extra_columns = NULL,
   ...
 )
+
+sleep_dam_annotation(data, min_time_immobile = 300)
 }
 \arguments{
 \item{data}{\link{data.table} containing behavioural variable from or one multiple animals.
@@ -71,7 +73,9 @@ ggplot(sleep_dt, aes(t,y="Animal 1",fill=asleep)) +
 }
 }
 \references{
-
+\itemize{
+\item The relevant \href{https://rethomics.github.io/sleepr}{rethomic tutorial section} -- on sleep analysis
+}
 }
 \seealso{
 \itemize{

@@ -114,6 +114,11 @@ attr(sleep_annotation, "needed_columns") <- function(motion_detector_FUN = max_v
 attr(sleep_annotation, "updater") <- function(args) {
   rlang::fn_fmls(sleep_annotation)$time_window_length <- args$time_window_length
   rlang::fn_fmls(sleep_annotation)$min_time_immobile <- args$min_time_immobile
+
+  # update velocity correction coef
+  motion_detector_FUN <- get(as.character(rlang::fn_fmls(sleep_annotation)$motion_detector_FUN))
+  rlang::fn_fmls(motion_detector_FUN)$velocity_correction_coef <- args$velocity_correction_coef
+  rlang::fn_fmls(sleep_annotation)$motion_detector_FUN <- motion_detector_FUN
   return(sleep_annotation)
 }
 
