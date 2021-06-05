@@ -118,7 +118,6 @@ movement_detector_enclosed <- function(func, feature, statistic, score, preproc_
 #' @details
 #' The default `time_window_length` is 300 seconds -- it is also known as the "5-minute rule".
 #' @seealso
-#' @import logging
 #' @export
 custom_annotation_wrapper <- function(custom_function) {
 
