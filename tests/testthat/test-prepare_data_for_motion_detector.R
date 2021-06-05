@@ -8,7 +8,7 @@ test_that("prepare_data_for_motion_detector works", {
   data <- dt[,-c("id")]
 
   col_needed <- c("t", "xy_dist_log10x1000", "x")
-  out <- sleepr::prepare_data_for_motion_detector(data,
+  out <- sleepr:::prepare_data_for_motion_detector(data,
                                             col_needed,
                                             10,
                                             "has_interacted")
@@ -18,7 +18,7 @@ test_that("prepare_data_for_motion_detector works", {
 
   # no optional column
   col_needed <- c("t", "xy_dist_log10x1000", "x")
-  out <- sleepr::prepare_data_for_motion_detector(data,
+  out <- sleepr:::prepare_data_for_motion_detector(data,
                                                    col_needed,
                                                    10)
 
@@ -35,7 +35,7 @@ test_that("prepare_data_for_motion_detector errors when missing column", {
   data <- dt[,-c("id")]
 
   col_needed <- c("t", "xy_dist_log10x1000", "x", "w")
-  expect_error(sleepr::prepare_data_for_motion_detector(data,
+  expect_error(sleepr:::prepare_data_for_motion_detector(data,
                                                    col_needed,
                                                    10,
                                                    "has_interacted"),
