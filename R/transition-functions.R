@@ -1,8 +1,9 @@
-#' Compute a generatic transition probability function
+#' Compute a generic transition probability function
 #'
-#' A closure that creates a probability transition function based on the
-#' transition passed in args 1 and 2
-#' @param state0 First state in the transtition
+#' A function that yields another function which computes the fraction of transitions
+#' starting in state0 that end in state 1
+#' Based on math from https://www.pnas.org/content/117/18/10024
+#' @param state0 First state in the transition
 #' @param state1 Second state in the transition
 #' @details The resulting function takes a trace of binary states.
 #' @details If using the column asleep from a behavr object, 1 encodes asleep and 0 awake
@@ -10,8 +11,9 @@
 #' @export
 generic_transition <- function(state0, state1) {
   transition_prob <- function(asleep_sequence) {
-    transitions <- asleep_sequence[1:(length(asleep_sequence)-1)] - asleep_sequence[-1]
-    p <- sum(transitions == state0 - state1) / sum(asleep_sequence[1:(length(asleep_sequence)-1)] == state0)
+
+    transitions <- diff(asleep_sequence)
+    p <- sum(transitions == (state1 - state0)) / sum(asleep_sequence[1:(length(asleep_sequence)-1)] == state0)
     return(p)
   }
   return(transition_prob)
