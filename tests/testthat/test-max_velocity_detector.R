@@ -1,7 +1,7 @@
 context("max_velocity_detector")
 
 test_that("max_velocity_detector works", {
-  library(fslbehavr)
+  library(behavr)
   dt <- toy_ethoscope_data(duration=days(2))
   dt[, test:= rnorm(nrow(dt))]
   data <- dt[,-c("id")]
@@ -13,7 +13,7 @@ test_that("max_velocity_detector works", {
 
 
 test_that("max_velocity_detector wans when no interaction and masking", {
-  library(fslbehavr)
+  library(behavr)
   dt <- toy_ethoscope_data(duration=days(2))
   dt[, test:= rnorm(nrow(dt))]
   dt[, has_interacted := NULL]

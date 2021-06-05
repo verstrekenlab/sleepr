@@ -5,7 +5,7 @@
 #'
 #' @param var name of the variable to use from `data`
 #' @inheritParams sleep_annotation
-#' @return an object of the same type as `data` (i.e. [data.table::data.table] or [fslbehavr::behavr]).
+#' @return an object of the same type as `data` (i.e. [data.table::data.table] or [behavr::behavr]).
 #' Each row is a specific bout characterised by three columns.
 #' * `t` -- its *onset*
 #' * `duration` --  its length

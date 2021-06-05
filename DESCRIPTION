@@ -12,7 +12,7 @@ Description: Use behavioural variables to score activity and infer sleep from bo
     and a new algorithm to detect when animals are dead.
 Depends: 
     R (>= 3.00),
-    fslbehavr
+    behavr
 Imports: 
   data.table
 Suggests: 

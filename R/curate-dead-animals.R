@@ -16,7 +16,7 @@
 #' The default would score an animal as dead it does not move more than *one percent of the time* for at least *one day*.
 #' All data following a "death" event are removed.
 #'
-#' @return an object of the same type as `data` (i.e. [data.table::data.table] or [fslbehavr::behavr]).
+#' @return an object of the same type as `data` (i.e. [data.table::data.table] or [behavr::behavr]).
 #'
 #' @examples
 #' dt1 <- toy_activity_data()
