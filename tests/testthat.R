@@ -1,4 +1,4 @@
 library(testthat)
-libary(fslsleepr)
+library(sleepr)
 
-test_check("fslsleepr")
+test_check("sleepr")
