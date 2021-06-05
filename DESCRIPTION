@@ -1,4 +1,4 @@
-Package: fslsleepr
+Package: sleepr
 Title: Analyse Activity and Sleep Behaviour
 Date: 2018-10-04
 Version: 0.3.0
@@ -14,8 +14,7 @@ Depends:
     R (>= 3.00),
     fslbehavr
 Imports: 
-  data.table,
-  logging
+  data.table
 Suggests: 
     testthat,
     covr,
@@ -23,7 +22,7 @@ Suggests:
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
-URL: https://gitlab.com/flysleeplab/fsl-retho/sleepr
-BugReports: https://gitlab.com/flysleeplab/fsl-retho/sleepr/issues
+URL: https://github.com/shaliulab/sleepr
+BugReports: https://github.com/shaliulab/sleepr/issues
 RoxygenNote: 7.1.1.9000
 Roxygen: list(markdown = TRUE)

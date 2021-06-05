@@ -2,12 +2,12 @@
 % Please edit documentation in R/transition-functions.R
 \name{generic_transition}
 \alias{generic_transition}
-\title{Compute a generatic transition probability function}
+\title{Compute a generic transition probability function}
 \usage{
 generic_transition(state0, state1)
 }
 \arguments{
-\item{state0}{First state in the transtition}
+\item{state0}{First state in the transition}
 
 \item{state1}{Second state in the transition}
 }
@@ -15,8 +15,9 @@ generic_transition(state0, state1)
 A function that computes P(state0|state1) in a sleep trace
 }
 \description{
-A closure that creates a probability transition function based on the
-transition passed in args 1 and 2
+A function that yields another function which computes the fraction of transitions
+starting in state0 that end in state 1
+Based on math from https://www.pnas.org/content/117/18/10024
 }
 \details{
 The resulting function takes a trace of binary states.

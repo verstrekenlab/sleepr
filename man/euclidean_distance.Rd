@@ -18,3 +18,8 @@ Its initial value is NA
 \description{
 Compute euclidean distance between two points
 }
+\details{
+Distance between 1,1 and 2,2 (should be square root of 2)
+euclidean_distance(c(1,2), c(1,2))
+NA 1.414214
+}
