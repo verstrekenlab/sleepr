@@ -4,25 +4,27 @@ log10x1000_inv <- function(x) { return(10 ^ (x / 1000))}
 #' Preprocess a raw ethoscope dataset by computing the sum of the number of pixels
 #' traversed by an animal on each time bin
 #' @return data.table of columns t and dist_sum
+#' @inheritParams sleep_annotation
 #' @export
 #' @import data.table
-distance_sum_enclosed <- function(d, time_window_length) {
+distance_sum_enclosed <- function(data, time_window_length) {
 
   . <- xy_dist_log10x1000 <- NULL
-  d <- prepare_data_for_motion_detector(d,
+  d <- prepare_data_for_motion_detector(data,
                                         c("t", "xy_dist_log10x1000"),
                                         time_window_length)
   d[, t := NULL]
-  d <- d[, .(dist_sum = sum(10**(xy_dist_log10x1000/1000))),  by = 't_round']
+  d <- d[, .(dist_sum = sum(log10x1000_inv(xy_dist_log10x1000))),  by = 't_round']
   return(d)
 }
 
-attr(distance_sum_enclosed, "needed_columns") <- function(...) {
+attr(distance_sum_enclosed, "needed_columns") <- function() {
   c("t", "dist_sum")
 }
 
 
 #' Compute velocity aggregates using xy_dist_log10x1000
+#' @inheritParams movement_detector_enclosed
 velocity_avg_enclosed <- function(data, time_window_length=10) {
 
   dt <- dist <- velocity <- vel_avg <- t <- dt <- xy_dist_log10x1000 <- . <- NULL
@@ -40,20 +42,26 @@ velocity_avg_enclosed <- function(data, time_window_length=10) {
   data <- data[, .(vel_avg = mean(velocity)), by = 't_round']
   return(data)
 }
-attr(velocity_avg_enclosed, "needed_columns") <- function(...) {
+attr(velocity_avg_enclosed, "needed_columns") <- function() {
   c("t", "vel_avg")
 }
 
 #' Generic function to aggregate movement with some statistic
+#' @param data  [data.table] containing behavioural variable from or one multiple animals.
+#' When it has a key, unique values, are assumed to represent unique individuals (e.g. in a [behavr] table).
+#' Otherwise, it analysis the data as coming from a single animal. `data` must have a column `t` representing time.
+#' @param time_window_length number of seconds to be used by the motion classifier.
+#' This corresponds to the sampling period of the output data.
 #' @param func Aggregating function (max, min, median, mean, etc)
-#' @param feature Name of a column in the sqlite3 file e.g. body_movement
+#' @param feature Name of a column in the sqlite3 file e.g. xy_dist_log10x1000
 #' @param statistic Name of the column resulting from aggregation e.g. max_movement
 #' @param score Name of the column providing a score i.e. category to the statistic e.g. micromovement
 #' score is usually a binary variable i.e. TRUE/FALSE
 #' @param preproc_FUN Optional, function to preprocess the input before computing the feature
 #' (if the data needs some transformation like reverting xy_dist_log10x1000 back to a distance)
 #' @param time_window_length Size of non overlapping time bins, in seconds
-#' @param threshold If the statistic is greater than this value, the score is TRUE, and 0 otherwise
+# @param threshold If the statistic is greater than this value, the score is TRUE, and 0 otherwise
+#' @rdname custom_annotation_wrapper
 movement_detector_enclosed <- function(func, feature, statistic, score, preproc_FUN=NULL) {
 
   dt <- . <- NULL
@@ -67,7 +75,6 @@ movement_detector_enclosed <- function(func, feature, statistic, score, preproc_
                                           "has_interacted")
 
     d[, dt := c(NA, diff(t))]
-    #d[,surface_change := xor_dist * 1e-3]
 
     setnames(d, feature, "feature")
     # restore the distance from the log-transformed variable
@@ -91,7 +98,6 @@ movement_detector_enclosed <- function(func, feature, statistic, score, preproc_
     d_small[, score :=  ifelse(statistic > threshold, TRUE,FALSE)]
     setnames(d_small, "score", score)
     setnames(d_small, "statistic", statistic)
-    # setnames(d_small, "feature", feature)
 
     # Set t_round as the representative time of the window
     # i.e. t becomes the begining of the window and not the t
@@ -99,7 +105,7 @@ movement_detector_enclosed <- function(func, feature, statistic, score, preproc_
     return(d_small)
   }
 
-  attr(closure, "needed_columns") <- function(...) {
+  attr(closure, "needed_columns") <- function() {
     c("t", statistic, score)
   }
 
@@ -112,18 +118,12 @@ movement_detector_enclosed <- function(func, feature, statistic, score, preproc_
 #' This function gives aggregates a variable of interest in a custom way
 #' All datapoints in every time_window_length seconds is aggregated into a single datapoint
 #'
-#' @param data  [data.table] containing behavioural variable from or one multiple animals.
-#' When it has a key, unique values, are assumed to represent unique individuals (e.g. in a [behavr] table).
-#' Otherwise, it analysis the data as coming from a single animal. `data` must have a column `t` representing time.
-#' @param time_window_length number of seconds to be used by the motion classifier.
-#' This corresponds to the sampling period of the output data.
 #' @param custom_function function used to produce the custom annotation
-#' @param ... extra arguments to be passed to `custom_function`.
+#' @param ... Extra arguments to be passed to `custom_function`.
 #' @return a [behavr] table similar to `data` with additional variables/annotations.
 #' The resulting data will only have one data point every `time_window_length` seconds.
 #' @details
 #' The default `time_window_length` is 300 seconds -- it is also known as the "5-minute rule".
-#' @seealso
 #' @export
 custom_annotation_wrapper <- function(custom_function) {
 
@@ -177,23 +177,23 @@ custom_annotation_wrapper <- function(custom_function) {
 
 #' @export
 #' @rdname velocity_avg_enclosed
-velocity_avg <- function()  {}
+velocity_avg <- function(data, time_window_length)  {}
 velocity_avg <- custom_annotation_wrapper(velocity_avg_enclosed)
 
 #' @export
-#' @rdname movement_detector_enclosed
-max_movement_detector <- function()  {}
-max_movement_detector <- custom_annotation_wrapper(movement_detector_enclosed(function(x) x, max, "body_movement", "max_movement", "micromovement"))
+#' @rdname custom_annotation_wrapper
+max_movement_detector <- function(data, time_window_length=10, threshold=1)  {}
+max_movement_detector <- custom_annotation_wrapper(movement_detector_enclosed(max, "xy_dist_log10x1000", "max_movement", "micromovement", log10x1000_inv))
 
 #' @export
-#' @rdname movement_detector_enclosed
-median_movement_detector <- function() {}
-median_movement_detector <- custom_annotation_wrapper(movement_detector_enclosed(function(x) x, median, "body_movement", "median_movement", "micromovement"))
+#' @rdname custom_annotation_wrapper
+median_movement_detector <- function(data, time_window_length=10, threshold=1) {}
+median_movement_detector <- custom_annotation_wrapper(movement_detector_enclosed(median, "xy_dist_log10x1000", "median_movement", "micromovement", log10x1000_inv))
 
 #' @export
-#' @rdname movement_detector_enclosed
-sum_movement_detector <- function() {}
-sum_movement_detector <- custom_annotation_wrapper(movement_detector_enclosed(function(x) x, sum, "body_movement", "sum_movement", "micromovement"))
+#' @rdname custom_annotation_wrapper
+sum_movement_detector <- function(data, time_window_length=10, threshold=1) {}
+sum_movement_detector <- custom_annotation_wrapper(movement_detector_enclosed(sum, "xy_dist_log10x1000", "sum_movement", "micromovement", log10x1000_inv))
 
 
 

@@ -6,7 +6,15 @@
 Preprocess a raw ethoscope dataset by computing the sum of the number of pixels
 traversed by an animal on each time bin}
 \usage{
-distance_sum_enclosed(d, time_window_length)
+distance_sum_enclosed(data, time_window_length)
+}
+\arguments{
+\item{data}{\link{data.table} containing behavioural variable from or one multiple animals.
+When it has a key, unique values, are assumed to represent unique individuals (e.g. in a \link{behavr} table).
+Otherwise, it analysis the data as coming from a single animal. \code{data} must have a column \code{t} representing time.}
+
+\item{time_window_length}{number of seconds to be used by the motion classifier.
+This corresponds to the sampling period of the output data.}
 }
 \value{
 data.table of columns t and dist_sum

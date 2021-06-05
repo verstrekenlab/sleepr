@@ -9,6 +9,15 @@ velocity_avg_enclosed(data, time_window_length = 10)
 
 velocity_avg(data, time_window_length = 10, ...)
 }
+\arguments{
+\item{data}{\link{data.table} containing behavioural variable from or one multiple animals.
+When it has a key, unique values, are assumed to represent unique individuals (e.g. in a \link{behavr} table).
+Otherwise, it analysis the data as coming from a single animal. \code{data} must have a column \code{t} representing time.}
+
+\item{time_window_length}{Size of non overlapping time bins, in seconds}
+
+\item{...}{Extra arguments to be passed to \code{custom_function}.}
+}
 \description{
 Compute velocity aggregates using xy_dist_log10x1000
 }

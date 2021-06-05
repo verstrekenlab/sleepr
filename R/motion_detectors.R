@@ -222,8 +222,11 @@ attr(virtual_beam_cross_detector, "needed_columns") <- function(...){
   c("x")
 }
 
-#' copy needed columns, and add t_round var for downsampling
-#' @noRd
+#' Copy needed columns, and add t_round var for downsampling
+#'
+#' @inheritParams sleep_annotation
+#' @param needed_columns Columns that must be present in the data
+#' @param optional_columns Optional, columns that can be used if available
 #' @importFrom data.table data.table setkeyv
 #' @export
 prepare_data_for_motion_detector <- function(data,

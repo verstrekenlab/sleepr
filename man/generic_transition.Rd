@@ -2,14 +2,22 @@
 % Please edit documentation in R/transition-functions.R
 \name{generic_transition}
 \alias{generic_transition}
+\alias{p_doze}
+\alias{p_wake}
 \title{Compute a generic transition probability function}
 \usage{
 generic_transition(state0, state1)
+
+p_doze(asleep_sequence)
+
+p_wake(asleep_sequence)
 }
 \arguments{
 \item{state0}{First state in the transition}
 
 \item{state1}{Second state in the transition}
+
+\item{asleep_sequence}{A sequence of T/F where every entry is the behavior in a bin and TRUE represents sleeping behavior}
 }
 \value{
 A function that computes P(state0|state1) in a sleep trace
@@ -18,6 +26,10 @@ A function that computes P(state0|state1) in a sleep trace
 A function that yields another function which computes the fraction of transitions
 starting in state0 that end in state 1
 Based on math from https://www.pnas.org/content/117/18/10024
+
+Takes as input a sequence of binary states (1/0 or T/F) assumming 1 is asleep or doze state
+
+Takes as input a sequence of binary states (1/0 or T/F) assumming 1 is asleep or doze state
 }
 \details{
 The resulting function takes a trace of binary states.
