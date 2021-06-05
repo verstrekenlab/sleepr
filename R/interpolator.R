@@ -1,4 +1,6 @@
 interpolate <- function(d_small, time_window_length) {
+
+  moving <- is_interpolated <- NULL
   # Generate a table with all the time windows
   # our data would contain
   # if there were no missing values

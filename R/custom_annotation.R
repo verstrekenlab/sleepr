@@ -7,6 +7,8 @@ log10x1000_inv <- function(x) { return(10 ^ (x / 1000))}
 #' @export
 #' @import data.table
 distance_sum_enclosed <- function(d, time_window_length) {
+
+  . <- xy_dist_log10x1000 <- NULL
   d <- prepare_data_for_motion_detector(d,
                                         c("t", "xy_dist_log10x1000"),
                                         time_window_length)
@@ -23,6 +25,8 @@ attr(distance_sum_enclosed, "needed_columns") <- function(...) {
 #' Compute velocity aggregates using xy_dist_log10x1000
 velocity_avg_enclosed <- function(data, time_window_length=10) {
 
+  dt <- dist <- velocity <- vel_avg <- t <- dt <- xy_dist_log10x1000 <- . <- NULL
+
   data <- prepare_data_for_motion_detector(
     data,
     c("t", "xy_dist_log10x1000"),
@@ -33,7 +37,7 @@ velocity_avg_enclosed <- function(data, time_window_length=10) {
   data[, dist := 10**((xy_dist_log10x1000)/1e3)]
   data[, velocity :=  dist / dt]
   #t_round is included in the columns because it is in the by arg
-  data <- data[, .(vel_avg = mean(velocity)),  by = 't_round']
+  data <- data[, .(vel_avg = mean(velocity)), by = 't_round']
   return(data)
 }
 attr(velocity_avg_enclosed, "needed_columns") <- function(...) {
@@ -52,6 +56,8 @@ attr(velocity_avg_enclosed, "needed_columns") <- function(...) {
 #' @param threshold If the statistic is greater than this value, the score is TRUE, and 0 otherwise
 movement_detector_enclosed <- function(func, feature, statistic, score, preproc_FUN=NULL) {
 
+  dt <- . <- NULL
+
   closure <- function(data, time_window_length=10, threshold=1) {
 
     # data$body_movement <- data$xy_dist_log10x1000
@@ -60,7 +66,7 @@ movement_detector_enclosed <- function(func, feature, statistic, score, preproc_
                                           time_window_length,
                                           "has_interacted")
 
-    d[,dt := c(NA, diff(t))]
+    d[, dt := c(NA, diff(t))]
     #d[,surface_change := xor_dist * 1e-3]
 
     setnames(d, feature, "feature")
@@ -74,7 +80,7 @@ movement_detector_enclosed <- function(func, feature, statistic, score, preproc_
     # velocity_corrected -> max
     # has_interacted -> sum
     # beam_cross -> sum
-    d_small <- d[,.(
+    d_small <- d[, .(
       statistic = func(feature[1:.N])
     ), by = "t_round"]
 
