@@ -15,6 +15,7 @@
 #' @param velocity_correction_coef an empirical coefficient to correct velocity with respect
 #'  to variable framerate.
 #' @inheritParams sleep_annotation
+#' @inheritParams prepare_data_for_motion_detector
 #' @param masking_duration number of seconds during which any movement is ignored (velocity is set to 0) after
 #' a stimulus is delivered (a.k.a. interaction).
 #' @param velocity_threshold uncorrected velocity above which an animal is classified as `moving' (for the legacy version).
@@ -32,7 +33,8 @@
 max_velocity_detector  <- function(data,
                                    time_window_length,
                                    velocity_correction_coef = 3e-3,
-                                   masking_duration = 6
+                                   masking_duration = 6,
+                                   curate=TRUE
                                    ){
   dt = x = .N = . = velocity = moving = dist = beam_cross = has_interacted = NULL
   dt = beam_crossed =  interaction_id = masked = interactions =  NULL
@@ -50,7 +52,7 @@ max_velocity_detector  <- function(data,
   d <- prepare_data_for_motion_detector(data,
                                         c("t", "xy_dist_log10x1000", "x"),
                                         time_window_length,
-                                        "has_interacted")
+                                        "has_interacted", curate=curate)
 
   ## Define velocity as the distance traversed
   ## between two consecutive frames and the time
@@ -227,12 +229,14 @@ attr(virtual_beam_cross_detector, "needed_columns") <- function(...){
 #' @inheritParams sleep_annotation
 #' @param needed_columns Columns that must be present in the data
 #' @param optional_columns Optional, columns that can be used if available
+#' @param curate If true, remove sparse ROI datasets (probably spurious fly detections)
 #' @importFrom data.table data.table setkeyv
 #' @export
 prepare_data_for_motion_detector <- function(data,
                                              needed_columns,
                                              time_window_length,
-                                             optional_columns = NULL){
+                                             optional_columns = NULL,
+                                             curate=TRUE){
   # todo assert no key/unique
   t_round <- NULL
   if(! all(needed_columns %in% names(data)))
@@ -262,7 +266,14 @@ prepare_data_for_motion_detector <- function(data,
 
   # remove datapoints belonging to windows (of size 60 seconds by default)
   # where the number of datapoints is less than a default of 20.
-  d <- curate_sparse_roi_data(d)
+  if (curate) {
+    before_n <- nrow(d)
+    d <- curate_sparse_roi_data(d)
+    after_n <- nrow(d)
+    if (before_n > 0 & after_n == 0) {
+      message("Data is too sparse (datapoints per bin are too low)")
+    }
+  }
 
   # TODO in order to ...
   data.table::setkeyv(d, "t_round")
