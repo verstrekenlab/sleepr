@@ -33,9 +33,20 @@
 bout_analysis <- function(var,data){
   .SD = NULL
   var_name <- deparse(substitute(var))
+  bout_analysis_standard(var_name, data)
+}
+
+
+#' Standard evaluation of bout_analysis
+#' @inheritParams bout_analysis
+#' @param var_name character, name of the column in data to be processed
+#' @seealso bout_analysis
+#' @export
+bout_analysis_standard <- function(var_name, data) {
+  .SD = NULL
   if(!var_name %in% colnames(data))
     stop("var must be a column of data. ",
-          sprintf("No column named '%s'", var_name))
+         sprintf("No column named '%s'", var_name))
   if(is.null(key(data)))
     return(boot_analysis_wrapped(data, var_name))
   data[,
