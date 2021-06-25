@@ -68,9 +68,12 @@ sleep_annotation <- function(data,
   message(sprintf("Min time immobile: %s", min_time_immobile))
 
   wrapped <- function(d){
-    if(nrow(d) < 100)
+    if(nrow(d) < 100) {
+      warning("Dataset is very small")
       return(NULL)
+    }
     # todo if t not unique, stop
+
 
     d_small <- motion_detector_FUN(d, time_window_length,...)
 
@@ -111,6 +114,10 @@ attr(sleep_annotation, "needed_columns") <- function(motion_detector_FUN = max_v
     needed_columns(...)
 }
 
+attr(sleep_annotation, "variables") <- function() {
+  c("asleep", "moving")
+}
+
 attr(sleep_annotation, "updater") <- function(args) {
   rlang::fn_fmls(sleep_annotation)$time_window_length <- args$time_window_length
   rlang::fn_fmls(sleep_annotation)$min_time_immobile <- args$min_time_immobile
@@ -122,6 +129,16 @@ attr(sleep_annotation, "updater") <- function(args) {
   return(sleep_annotation)
 }
 
+attr(sleep_annotation, "parameters") <- function(motion_detector_FUN = max_velocity_detector, ...) {
+
+  # arguments of sleep_annotation
+  args <- names(formals(sleep_annotation))
+  args <- unique(c(args, names(formals(max_velocity_detector))))
+  args <- args[args != "..."]
+  args <- args[args != "data"]
+  args <- args[args != "motion_detector_FUN"]
+  return(args)
+}
 
 #' @export
 #' @rdname sleep_annotation
