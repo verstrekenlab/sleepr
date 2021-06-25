@@ -8,7 +8,8 @@ prepare_data_for_motion_detector(
   data,
   needed_columns,
   time_window_length,
-  optional_columns = NULL
+  optional_columns = NULL,
+  curate = TRUE
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ Otherwise, it analysis the data as coming from a single animal. \code{data} must
 This corresponds to the sampling period of the output data.}
 
 \item{optional_columns}{Optional, columns that can be used if available}
+
+\item{curate}{If true, remove sparse ROI datasets (probably spurious fly detections)}
 }
 \description{
 Copy needed columns, and add t_round var for downsampling

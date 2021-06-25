@@ -11,7 +11,8 @@ max_velocity_detector(
   data,
   time_window_length,
   velocity_correction_coef = 0.003,
-  masking_duration = 6
+  masking_duration = 6,
+  curate = TRUE
 )
 
 max_velocity_detector_legacy(data, velocity_threshold = 0.006)
@@ -31,6 +32,8 @@ to variable framerate.}
 
 \item{masking_duration}{number of seconds during which any movement is ignored (velocity is set to 0) after
 a stimulus is delivered (a.k.a. interaction).}
+
+\item{curate}{If true, remove sparse ROI datasets (probably spurious fly detections)}
 
 \item{velocity_threshold}{uncorrected velocity above which an animal is classified as `moving' (for the legacy version).}
 }

@@ -3,20 +3,11 @@
 \name{movement_detector_enclosed}
 \alias{movement_detector_enclosed}
 \alias{custom_annotation_wrapper}
-\alias{max_movement_detector}
-\alias{median_movement_detector}
-\alias{sum_movement_detector}
 \title{Generic function to aggregate movement with some statistic}
 \usage{
 movement_detector_enclosed(func, feature, statistic, score, preproc_FUN = NULL)
 
 custom_annotation_wrapper(custom_function)
-
-max_movement_detector(data, time_window_length = 10, ...)
-
-median_movement_detector(data, time_window_length = 10, ...)
-
-sum_movement_detector(data, time_window_length = 10, ...)
 }
 \arguments{
 \item{func}{Aggregating function (max, min, median, mean, etc)}
