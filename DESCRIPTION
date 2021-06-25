@@ -1,7 +1,7 @@
 Package: sleepr
 Title: Analyse Activity and Sleep Behaviour
 Date: 2018-10-04
-Version: 0.3.0
+Version: 0.3.3
 Authors@R: c(
     person("Quentin", "Geissmann", role = c("aut", "cre"), email = "qgeissmann@gmail.com")
     )
@@ -14,7 +14,7 @@ Depends:
     R (>= 3.00),
     behavr
 Imports: 
-  data.table
+    data.table
 Suggests: 
     testthat,
     covr,
