@@ -7,7 +7,7 @@ log10x1000_inv <- function(x) { return(10 ^ (x / 1000))}
 #' @inheritParams sleep_annotation
 #' @export
 #' @import data.table
-distance_sum_enclosed <- function(data, time_window_length) {
+distance_sum_enclosed <- function(data, time_window_length=10) {
 
   . <- xy_dist_log10x1000 <- NULL
   d <- prepare_data_for_motion_detector(data,
@@ -68,6 +68,8 @@ movement_detector_enclosed <- function(func, feature, statistic, score, preproc_
 
   closure <- function(data, time_window_length=10, threshold=1) {
 
+    message(paste0("Movement detector - ", func, " running.\ntime_window_length = ", time_window_length))
+    func <- match.fun(func)
     # data$body_movement <- data$xy_dist_log10x1000
     d <- prepare_data_for_motion_detector(data,
                                           c("t", feature, "x"),
@@ -107,6 +109,13 @@ movement_detector_enclosed <- function(func, feature, statistic, score, preproc_
 
   attr(closure, "needed_columns") <- function() {
     c("t", statistic, score)
+  }
+  attr(closure, "parameters") <- function() {
+    return(names(formals(func)))
+  }
+
+  attr(closure, "variables") <- function() {
+    statistic
   }
 
   return(closure)
@@ -171,6 +180,18 @@ custom_annotation_wrapper <- function(custom_function) {
   }
 
   attr(custom_annotation, "needed_columns") <- function() {attr(custom_function, 'needed_columns')()}
+  attr(custom_annotation, "parameters") <- function() {
+    args <- names(formals(custom_annotation))
+    args <- c(args, attr(custom_function, "parameters")())
+    args <- unique(args)
+    args <- args[args != "..."]
+    args <- args[args != "data"]
+    return(args)
+  }
+
+  attr(custom_annotation, "variables") <- function() {
+    attr(custom_function, "variables")()
+  }
 
   return(custom_annotation)
 }
@@ -180,20 +201,30 @@ custom_annotation_wrapper <- function(custom_function) {
 velocity_avg <- function(data, time_window_length)  {}
 velocity_avg <- custom_annotation_wrapper(velocity_avg_enclosed)
 
+#' Find the maximum distance traversed by the animal
+#' @rdname max_movement_detector
+#' @inheritParams sleep_annotation
+#' @param threshold numeric, a value that splits a continuous variable into two states
 #' @export
-#' @rdname custom_annotation_wrapper
 max_movement_detector <- function(data, time_window_length=10, threshold=1)  {}
-max_movement_detector <- custom_annotation_wrapper(movement_detector_enclosed(max, "xy_dist_log10x1000", "max_movement", "micromovement", log10x1000_inv))
+max_movement_detector <- custom_annotation_wrapper(movement_detector_enclosed("max", "xy_dist_log10x1000", "max_movement", "micromovement", log10x1000_inv))
 
+#' Find the median distance traversed by the animal
+#' @rdname median_movement_detector
+#' @inheritParams max_movement_detector
 #' @export
-#' @rdname custom_annotation_wrapper
 median_movement_detector <- function(data, time_window_length=10, threshold=1) {}
-median_movement_detector <- custom_annotation_wrapper(movement_detector_enclosed(median, "xy_dist_log10x1000", "median_movement", "micromovement", log10x1000_inv))
+median_movement_detector <- custom_annotation_wrapper(movement_detector_enclosed("median", "xy_dist_log10x1000", "median_movement", "micromovement", log10x1000_inv))
+
+#' Find the total distance traversed by the animal
+#' @rdname sum_movement_detector
+#' @export
+#' @inheritParams max_movement_detector
+sum_movement_detector <- function(data, time_window_length=10, threshold=1) {}
+sum_movement_detector <- custom_annotation_wrapper(movement_detector_enclosed("sum", "xy_dist_log10x1000", "sum_movement", "micromovement", log10x1000_inv))
 
 #' @export
-#' @rdname custom_annotation_wrapper
-sum_movement_detector <- function(data, time_window_length=10, threshold=1) {}
-sum_movement_detector <- custom_annotation_wrapper(movement_detector_enclosed(sum, "xy_dist_log10x1000", "sum_movement", "micromovement", log10x1000_inv))
-
-
+#' @inheritParams sleep_annotation
+distance_annotation <- function(data, time_window_length=10) {}
+distance_annotation <- custom_annotation_wrapper(sleepr::distance_sum_enclosed)
 
