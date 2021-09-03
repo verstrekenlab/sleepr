@@ -41,5 +41,29 @@ This function gives aggregates a variable of interest in a custom way
 All datapoints in every time_window_length seconds is aggregated into a single datapoint
 }
 \details{
+movement_detector_enclosed takes:
+\itemize{
+\item{the name of an R summary function (mean, max, etc)}
+\item{the name of a column in the future datasets to apply the function to}
+\item{the name of the resulting summary column}
+\item{the name of an alternative boolean column, which is set to TRUE if the summary column has a value greater than a threshold (default 1)}
+\item{a preprocessing function to be applied to the column before the summary function is applied to it}
+}
+
 The default \code{time_window_length} is 300 seconds -- it is also known as the "5-minute rule".
+custom_annotation_wrapper simplifies writing new annotation functions by leaving the shared functionality here
+and the dedicated functionality to the new function.
+This function adds to the functionality in the annotation function:
+\itemize{
+\item{Check a minimal amount of data is available and quit otherwise}
+\item{Restore the name of the time column to remove the effects of binning}
+\item{Check the amount of data after annotation is also enough (at least 1)}
+\item{Apply a rolling interpolation of the labels to the data (assume the last available data point)}
+}
+It implements 3 attributes:
+\itemize{
+\item{needed_columns: A function that returns the columns needed by the function in its passed data}
+\item{parameters: A function that returns the name of the parameters used by the function (including other functions' called by it)}
+\item{variables: A function that returns the name of the newly produced columns by the function}
+}
 }
